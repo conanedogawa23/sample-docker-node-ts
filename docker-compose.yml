@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  # Node.js Application
+  node_app:
+    build:
+      context: ./node_app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      MONGO_URL: mongodb://mongodb:27017/mydb
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - node_mongodb_redis_network
+
+  # MongoDB
+  mongodb:
+    image: mongo:latest
+    restart: always
+    command: mongod --bind_ip_all
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - node_mongodb_redis_network
+
+  # Redis
+  redis:
+    image: redis:latest
+    restart: always
+    command: redis-server --bind 0.0.0.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - node_mongodb_redis_network
+
+networks:
+  node_mongodb_redis_network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:
